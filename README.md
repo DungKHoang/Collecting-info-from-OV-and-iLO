@@ -26,7 +26,7 @@ The script per se may not run correctly in your environment as it has specific c
 
 ## Syntax
 ```
-    .\server-vitals.ps1 -$OV_Appliance_IP <OV-IP-Address>  -sourceXLS samples.xlsx
+    .\server-vitals.ps1 -OV_Appliance_IP <OV-IP-Address>  -sourceXLS samples.xlsx
 
 ```
 
