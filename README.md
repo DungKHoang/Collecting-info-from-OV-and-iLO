@@ -12,7 +12,7 @@ This sample script is used to collect HW information of servers either through O
 
 It then generates an Excel file with multiple sheets: the first sheet contains list of servers that are in ready state ( no HW issue), other sheets contains list of servers that exhibit specific HW issues ( Fw not compatible, NIC errors, disk errors...)
 
-Finally, it generates AHS log file for each server that potentially have HW challenges
+Finally, it generates AHS log file for each server that potentially has HW challenges
 
 ## Prerequisites
    * OneView PowerShell library v5.0
