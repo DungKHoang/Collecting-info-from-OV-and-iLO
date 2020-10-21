@@ -4,6 +4,7 @@
 #														#
 #    v1.0		Initial									6/1/2020	#
 #    v2.0 		Add health check                        9/1/2020
+# 	 v2.1 		Add disk encryption report				10/20/2020
 #  														#
 #################################################################################################################
 param (
@@ -130,6 +131,9 @@ class server
 	[string]$physicalDriveCount	
 	[string]$logicalDrive
 	[string]$physicalDrive
+	
+	[string]$status_physical_disk_encryption = 'OK'
+	[string]$disk_not_encrypted 
 
 	[string]$status_NVMe 			= 'OK'
 	[string]$NVMeCount		
@@ -200,6 +204,7 @@ $fanRepair			= @()
 $powerRepair 		= @()
 $fqdnFix 			= @()
 $sysRepair			= @()
+$pdEncryptRepair    = @()
 
 $okSheet 			= "$Site-OK"
 $notInOvSheet 		= "Server_not_in_OV"
@@ -212,6 +217,7 @@ $fanRepairSheet 	= "fan_Repair"
 $powerRepairSheet 	= "powerSupply_Repair"
 $fqdnFixSheet 		= "FQDN_fix"
 $sysRepairSheet 	= "System_Repair"		
+$pdEncryptRepairSheet  = "Physical disk not encrypted"	
 
 
 
@@ -551,6 +557,29 @@ foreach ($entry in $SourceXLS_Data)
 
 					$ldRepair 				+= $s
 				}
+
+				# Check physical disk encryption
+				$pdNotEncryptedArray 	= @()
+				$slot2 					= $resources | where location -eq 'Slot 2' 		# Egt second controller
+				$physDrives				= $slot2.physicalDrives
+				foreach ($pd in $physDrives)
+				{
+					$location 			= $pd.location
+					$isEncrypted 		= $pd.encryptedDrive
+					if (-not $isEncrypted)
+					{
+						$pdNotEncryptedArray	+= $location
+					}
+				} 
+
+				if ($pdNotEncryptedArray)
+				{
+					$s.disk_not_encrypted	= $pdNotEncryptedArray -join '|'
+					$serverState 			= $False
+					$s.status_physical_disk_encryption		= 'Check physical disk Encryption'
+					$pdEncryptRepair		+= $s 
+
+				}
 			}
 
 			#----------------- Need access to iLO now
@@ -797,6 +826,8 @@ if ($fanRepair)
 if ($powerRepair)
 { 	$powerRepair 	| export-Excel -AutoSize -path $output_file -WorksheetName $powerRepairSheet -conditionaltext $allConditions  } 
 
+if ($pdEncryptRepair)
+{ 	$pdEncryptRepair| export-Excel -AutoSize -path $output_file -WorksheetName $pdEncryptRepairSheet  -conditionaltext $allConditions  } 
 
 
 LogInfo "Script Execution Completed" "$log_filename" 
